@@ -1,42 +1,45 @@
-import { useReducer} from 'react';
-import CreateTaskForm from './TaskCreateForm';
+import {useReducer, useEffect} from 'react';
+import AddTaskForm from './AddTaskForm';
 import TaskCard from './TaskCard';
-
-// The state parameter is the actual when you declared at instantiation time. In this case, "tasks".
-function reducer(state, action) {
-    if (action.type === "add") {
-        // return ["this is what we have now!"]
-        return [...state, {name: action.name, done: false}]
-    }
-    else {
-        return state.filter(t => t.name !== action.name);
-    }
-}
-
-function createInitialTasks() {
-    let rv = ["Grade A4", "Finish final project"].map(t => {
-        return {
-            name: t,
-            done: false
-        }
-    })
-
-    rv.push({name: "Completed Task!", done: true})
-    return rv;
-}
 
 
 function ToDoList() {
-    const [tasks, dispatch] = useReducer(reducer, createInitialTasks()) 
+    // const [tasks, setTasks] = useState([])
+    const [tasks, dispatch] = useReducer(reducer, [])
+
+    function reducer(state, action) {
+        if (action.type === "add") {
+            fetchFromServer();
+            return state; 
+        }
+        else if (action.type === "fetch") {
+            return action.data;
+        }
+        else {
+            fetchFromServer();
+            return state; 
+        }
+
+    }
+
+    function fetchFromServer() {
+        fetch("http://localhost:8080/todo", {method: "GET"})
+            .then(r => r.json())
+            .then(d => dispatch({type: "fetch", data: d}))
+    }
+
+    useEffect(() => {
+        fetchFromServer()
+    }, [])
+    
 
     return (
         <div>
-            <CreateTaskForm dispatcher={dispatch}></CreateTaskForm>
-            {tasks.map(t => <TaskCard name={t.name} completed ={t.done} dispatcher={dispatch}></TaskCard> 
-        )}
+            {/* {fetchFromServer()} */}
+            <AddTaskForm dispatch={dispatch}></AddTaskForm>
+            {tasks.map(t => <TaskCard name={t} dispatch={dispatch}/>)}
         </div>
     )
-
 }
 
 export default ToDoList;

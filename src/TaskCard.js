@@ -1,14 +1,23 @@
-function TaskCard({name, completed, dispatcher}) {
+function TaskCard({name, dispatch}) {
 
     function handleClick() {
-        dispatcher({action: "completed", name: name})
+        deleteCardFromServer(name)
     }
 
-    return <div> 
-        {completed && <div>{name}</div>} 
-        {!completed && <div>{name}<button onClick={handleClick}>Complete</button></div>} 
-    </div>
+    function deleteCardFromServer(cardName) {
+        fetch("http://localhost:8080/todo", {method: "DELETE", headers: {
+            'Accept':'application/json',
+            'Content-Type': 'application/json'  // Specify content type as JSON
+          } ,body: JSON.stringify({name: cardName})})
+        .then(r => dispatch({type: "delete"}))
+    }
 
+    return (
+        <div>
+            <p> {name} </p>
+            <button onClick={handleClick}>Done</button>
+        </div>
+    )
 
 }
 
